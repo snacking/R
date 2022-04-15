@@ -1,2 +1,2 @@
 # R
-CSU-R LAnguage Course
+CSU-R Language Course
