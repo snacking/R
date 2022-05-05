@@ -1,0 +1,130 @@
+#homework 1
+install.packages("ggplot2", dependencies = TRUE)
+
+#homework2
+a = 1
+.a = 1
+print("a")
+cat("a")
+num = sample(1:50, 10, replace = TRUE)
+for(it in num) if(it > 10) print(it)
+i = 1
+j = 1
+len = length(num)
+while(i <= len) {
+	while(j < len - i) {
+		if(num[j] < num[j + 1]) {
+			tmp = num[j]
+			num[j] = num[j + 1]
+			num[j + 1] = tmp
+		}
+		j = j + 1
+	}
+	i = i + 1
+}
+print(num)
+
+#homework 3
+num <- sample(1:100, 10, replace = TRUE)
+group <- c("math", "math", "eng", "eng", "chi", "math","chi","eng","chi","chi")
+group <- factor(group)
+print("avg:")
+tapply(num, group, mean)
+print("raw:")
+print(num)
+num2 <- sample(1:100, 10, replace = TRUE)
+num3 <- sample(1:100, 10, replace = TRUE)
+df1 <- data.frame(num, num2, num3, group)
+df1
+df2 <- cbind(num2, num3, num, group)
+df3 <- rbind(num, num3, num2, group)
+df2
+df3
+library(openxlsx)
+load_csv1 <- read.csv("ADdata2.csv")
+load_csv1 <- data.frame(load_csv1)
+load_txt1 <- read.table("ADdata1.txt", header = TRUE)
+load_txt1 <- data.frame(load_txt1, header = TRUE)
+load_txt2 <- read.table("ADdata4.txt",header = TRUE)
+load_txt2 <- data.frame(load_txt2)
+load_xlsx <- read.xlsx("ADdata3.xlsx")
+load_xlsx <- data.frame(load_xlsx)
+merge_data1 <- merge(load_csv1,load_xlsx,by.x = "X", by.y = "Var.1")
+merge_data2 <- merge(merge_data1,load_txt1,by.x = "X", by.y = "X")
+merge_data3 <- merge(merge_data2,load_txt2,by.x = "X", by.y = "X")
+library(xlsx)
+write.csv(merge_data3, file = "merge_data1.csv")
+write.table(merge_data3, file = "merge_data2.txt")
+xlsx::write.xlsx(merge_data3, file = "merge_data3.xlsx")
+tem1 <- load_txt1[order(load_txt1$X),]
+tem2 <- load_txt2[order(load_txt2$X),]
+tem3 <- load_csv1[order(load_csv1$X),]
+tem4 <- load_xlsx[order(load_xlsx$Var.1),]
+cbind_merge_df1 <- cbind(tem1, tem2, tem3, tem4)
+cbind_merge_df1 <- cbind_merge_df1[c(-18, -35, -52)]
+list_name <- dir("./data",pattern = ".csv")
+merge_data <- read.csv(file = paste("data",list_name[1],sep = "/",collapse = ","),header=T,sep=",")
+for (i in 2:length(list_name)){
+  new_data <- read.csv(file = paste("data",list_name[i],sep = "/",collapse = ","),header=T,sep=",")
+  merge_data <- cbind(merge_data,new_data)
+}
+write.table(merge_data, file = "merge_data.xlsx")
+
+#homework 4
+list_name <- list.files(path = "./data", pattern = ".csv")
+merge_data <- read.csv(file = paste("data",list_name[1],sep = "/",collapse = ","),header=F,sep="\t")
+for (i in 2:length(list_name)){
+  new_data <- read.csv(file = paste("data",list_name[i],sep = "/",collapse = ","),header=F,sep="\t")
+  merge_data <- cbind(merge_data,new_data)
+}
+names(merge_data) = c(1:276)
+save(merge_data, file = "merge_data2.Rdata")
+inf_txt <- read.table("./data/GSE67835-GPL15520_series_matrix.txt",skip = 35,nrows = 25,sep = "\t")
+inf_txt <- inf_txt[c(2,10,11,12),]
+inf_txt <- inf_txt[,-1]
+row.names(inf_txt) = c("GEO_accession", "tissue", "celltype","age")
+inf_txt[2,] <- gsub("tissue: ", "", inf_txt[2,])
+inf_txt[3,] <- gsub("cell type: ", "", inf_txt[3,])
+inf_txt[4,] <- gsub("age: ", "", inf_txt[4,])
+colnames(inf_txt) <- inf_txt[1,]
+inf_txt <- inf_txt[-1,]
+inf_txt <- t(inf_txt)
+GSE_list_name <- (list.files(path = "./data", pattern = ".csv"))
+GSE_list_name <- as.data.frame(substr(GSE_list_name,1,10))
+colnames(GSE_list_name) = "GEO_accession"
+index_gse <- match(inf_txt[,1], GSE_list_name[,1])
+row.names(merge_data) = merge_data[,1]
+new_merge_data <- merge_data[,seq(2,276,by = 2)]
+colnames(new_merge_data) = GSE_list_name[,1]
+new_merge_data <- t(new_merge_data)
+all_merge_data <- cbind(new_merge_data,inf_txt)
+write.csv(all_merge_data, file = "all_merge_data.csv")
+row.names(match_merge_data) = match_merge_data[,1]
+match_merge_data <- match_merge_data[,-1]
+new_match_merge_data <- match_merge_data == 0
+count_fun <- function(data, m, n){
+  result <- c(1:m)
+  for(i in 1:m){
+    count <- 0
+    for(j in 1:n){
+      count <- count + data[i,j]
+    }
+    result[i] <- count
+  }
+  return(result)
+}
+result1 <- count_fun(new_match_merge_data, 100,64)
+result2 <- count_fun(t(new_match_merge_data), 64, 100)
+result1
+result2
+apply(new_match_merge_data,1,sum)
+apply(new_match_merge_data,2,sum)
+row_ma_data <- as.matrix(new_match_merge_data)
+col_ma_data <- as.matrix(t(new_match_merge_data))
+row_ma <- matrix(1,64,1)
+col_ma <- matrix(1,100,1)
+row_count <- new_match_merge_data %*% row_ma
+col_count <- t(new_match_merge_data) %*% col_ma
+row_count
+col_count
+
