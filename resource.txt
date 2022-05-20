@@ -128,3 +128,78 @@ col_count <- t(new_match_merge_data) %*% col_ma
 row_count
 col_count
 
+#homework 5
+library(devtools)
+library(ggfortify)
+library(ggbiplot)
+library(ggplot2)
+load("ADdata.RData")
+load("gse67835.RData")
+data1 <- unlist(ADdata)
+data2 <- unlist(GSE67835)
+hist(log10(data1),breaks = 10,xlab = "log10(AData)",col = c("azure","beige","cyan"))
+hist(log10(as.numeric(data2)),breaks = 10,xlab = "GSE",col = "cadetblue")
+ADdata_pic <- hist(x=ADdata$asym54,breaks = 100,col="pink")
+hist(log10(ADdata$asym54),breaks = 10,xlab = "log10(asym54)",main = "histogram of log10(asym54)",col = "pink")
+hist(log(as.numeric(GSE67835[,6])),breaks = 5,xlab = "log10(A2M)",main = "histogram of log10(A2M)",col = "pink")
+load("ADdata.RData")
+ADdata <- t(ADdata)
+type <- gsub("\\d","",rownames(ADdata))
+type <- as.data.frame(type)
+ADdata <- cbind(ADdata,type)
+ADdata<-as.data.frame(ADdata)
+pca <- ADdata[,1:100]
+new_pca <- prcomp(pca,scale. = T, center = T)
+library(ggfortify)
+autoplot(new_pca,data = ADdata,col= 'type',size=3,
+         frame = TRUE,frame.type='norm',
+         label = T, label.size = 3)+
+  theme_classic()
+load("GSE.RData")
+data.pca <- data[,4:22091]
+gse_pca <- prcomp(data.pca,center = T,scale. = F,retx = T)
+names(data)[2]="celltype"
+library(ggfortify)
+autoplot(gse_pca,data = data,col = "celltype",size=2,
+         frame = TRUE,frame.type='norm',
+         label = TRUE, label.size = 3)+ 
+  theme_classic()
+
+#homework 6
+load("ADdata.RData")
+ADdata <- -t(ADdata)
+scale_data <- scale(ADdata)
+d <- dist(scale_data)
+fit1<-hclust(d,method = "average")
+windows()
+plot(fit1,hang = -1,cex=.8)
+dist1 <- dist(ADdata,method = "manhattan")
+dist123 <- dist(t(ADdata),method = "manhattan")
+dist123 <- hclust(dist123,method = "average")
+windows()
+plot(dist123,hang=-1,cex=.8)
+windows()
+heatmap(as.matrix(d))
+library(factoextra)
+library(igraph)
+windows()
+fviz_dend(fit1,k=4,rect =T,rect_fill = T,type = "circular",
+          rect_border = c("#2E9FDF", "#00AFBB", "#E7B800", "#FC4E07"))
+library(ggplot2)
+library(ggrepel)
+load("class6_volcano.RData")
+prostat$FC1 <- 2^prostat$FC
+FC1 = 1.2 
+P = 0.05 
+prostat$FC2 <- log(prostat$FC1,base=1.2)
+prostat$mark = as.factor(ifelse(prostat$P < 0.05 & abs(prostat$FC2) > 1 ,ifelse(prostat$FC2< 1 ,'Up','Down'),'NoSignifi'))
+windows()
+ggplot(data = prostat, aes(x = FC, y = -log10(P), colour=mark,label = ID)) +
+  geom_point(alpha=0.4, size=3.5) +
+  scale_color_manual(values = c("#004B97","#8E8E8E","#5B00AE")) +
+  xlim(c(-2, 2)) +
+  geom_vline(xintercept=c(-0.3,0.3),lty=2,col="black",lwd=0.5) +
+  geom_hline(yintercept = -log10(0.05),lty=2,col="black",lwd=0.5)+
+  labs(x="log2(fold change)",y="-log10 (p-value)",title="vocano") +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="right", legend.title = element_blank())
+ggsave("prostat.jpg",width = 12,height = 10)
