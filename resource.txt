@@ -203,3 +203,48 @@ ggplot(data = prostat, aes(x = FC, y = -log10(P), colour=mark,label = ID)) +
   labs(x="log2(fold change)",y="-log10 (p-value)",title="vocano") +
   theme(plot.title = element_text(hjust = 0.5), legend.position="right", legend.title = element_blank())
 ggsave("prostat.jpg",width = 12,height = 10)
+
+#homework 7
+rm(list = ls())
+setwd("E:\\Program Files\\RStudio\\Rwork\\data for class3")
+load("debug.RData")
+ADdata[ADdata == 0] <- NA 
+ADdata <- log2(ADdata) 
+ADdata <- t(ADdata)
+type <- gsub("\\d","",rownames(ADdata))
+type <- as.data.frame(type)
+ADdata <- cbind(ADdata,type)
+ADdata<-as.data.frame(ADdata)
+pos_ad <- type == "ad"
+pos_asym <- type == "asym"
+pos_ctl <- type == "ctl"
+pvalue <- c(1:100)
+for(i in 1:100){
+ 
+  ad <- sum(!is.na(ADdata[pos_ad,i]))
+  ctl <- sum(!is.na(ADdata[pos_ctl,i]))
+  asym <- sum(!is.na(ADdata[pos_asym,i]))
+  if(ad >= 3 & ctl >= 3 & asym >= 3){
+    p <- oneway.test(ADdata[,i]~type, ADdata)
+    pvalue[i-1] <- p$p.value
+  }
+  else{
+    pvalue[i -1] = NA
+  }
+}
+protein <- as.data.frame(colnames(ADdata))
+protein <- as.data.frame(protein[1:100,])
+pvalue <- as.data.frame(cbind(protein,pvalue))
+colnames(pvalue) <- c("protein","P")
+library(clusterProfiler)
+library(org.Hs.eg.db)
+library(ggplot2)
+load("class6_volcano.RData")
+P <- prostat$P
+a <- P < 0.05
+pro_data <- prostat[a,]
+pro_ID <- pro_data$ID[!is.na(pro_data$ID)]
+GOresult <- enrichGO(pro_ID,"org.Hs.eg.db",keyType = "SYMBOL",ont = "BP",pvalueCutoff = 0.05,
+                  pAdjustMethod = "BH",minGSSize = 10,maxGSSize = 500)
+barplot(GOresult, showCategory = 20,drop = T)
+dotplot(GOresult, showCategory = 30)
